@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import md5 from "md5";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Email {
 	id: string;
@@ -23,7 +25,7 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const emailRef = useRef<HTMLLIElement>(null);
 
-	const calculateMaxEmails = () => {
+	const calculateMaxEmails = useCallback(() => {
 		if (containerRef.current && emailRef.current) {
 			const containerHeight = containerRef.current.clientHeight;
 			const emailHeight = emailRef.current.clientHeight;
@@ -38,6 +40,14 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 			const maxEmails = Math.floor(containerHeight / totalEmailHeight);
 			setMaxEmails(maxEmails);
 		}
+	}, []);
+
+	const debounce = (func: any, wait: any) => {
+		let timeout: any;
+		return (...args: any) => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => func.apply(this, args), wait);
+		};
 	};
 
 	useEffect(() => {
@@ -68,12 +78,16 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 
 	useEffect(() => {
 		calculateMaxEmails();
-	}, []);
+		const handleResize = debounce(calculateMaxEmails, 100);
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, [calculateMaxEmails]);
 
 	const getGravatarUrl = (email: string) => {
 		const hash = md5(email.trim().toLowerCase());
 		return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
 	};
+
 	const extractName = (from: string): string => {
 		const nameMatch = from.match(/(.*)<.*>/);
 		return nameMatch ? nameMatch[1].trim() : from;
@@ -85,10 +99,65 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 			className="w-full h-full flex flex-col p-2 text-foreground"
 		>
 			{loading ? (
-				<p>Loading...</p>
-			) : (
 				<div className="flex flex-col overflow-y-auto custom-scrollbar">
 					<div className="w-full h-8 pb-2 mb-2 border-b border-foreground/20 flex flex-row items-center gap-2">
+						<Skeleton
+							circle
+							width={32}
+							height={32}
+							baseColor="#4F4F4F"
+							highlightColor="#636363"
+						/>
+						<Skeleton
+							width={100}
+							height={24}
+							baseColor="#4F4F4F"
+							highlightColor="#636363"
+						/>
+					</div>
+					<ul className="flex flex-col w-full pr-2 overflow-y-auto">
+						{Array.from({ length: maxEmails }).map((_, index) => (
+							<li
+								key={index}
+								className="w-full p-2 rounded-md mb-2 flex flex-row gap-4 relative"
+							>
+								<Skeleton
+									circle
+									width={32}
+									height={32}
+									baseColor="#4F4F4F"
+									highlightColor="#636363"
+								/>
+								<div className="flex flex-col w-full">
+									<Skeleton
+										width={150}
+										height={20}
+										baseColor="#4F4F4F"
+										highlightColor="#636363"
+									/>
+									<Skeleton
+										width={`80%`}
+										height={20}
+										baseColor="#4F4F4F"
+										highlightColor="#636363"
+									/>
+									<Skeleton
+										width={`60%`}
+										height={20}
+										baseColor="#4F4F4F"
+										highlightColor="#636363"
+									/>
+								</div>
+							</li>
+						))}
+					</ul>
+				</div>
+			) : (
+				<div className="flex flex-col overflow-y-auto custom-scrollbar">
+					<a
+						className="w-full h-8 pb-2 mb-2 border-b border-foreground/20 flex flex-row items-center gap-2"
+						href={"https://mail.google.com/"}
+					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="52 42 88 66"
@@ -116,7 +185,7 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 							/>
 						</svg>
 						<h1 className="text-lg">Gmail</h1>
-					</div>
+					</a>
 					<ul className="flex flex-col w-full pr-2 overflow-y-auto">
 						{emails.map((email, index) => (
 							<li
@@ -139,7 +208,6 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 									</svg>
 								</a>
 								<div className="min-w-8 min-h-8">
-									{" "}
 									{email.from.includes("<") &&
 										email.from.includes(">") && (
 											<img
@@ -154,11 +222,6 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 										)}
 								</div>
 								<div className="h-full">
-									{/* <p>
-										{new Date(
-											parseInt(email.internalDate)
-										).toLocaleString()}
-									</p> */}
 									<p className="font-bold">
 										{extractName(email.from)}
 									</p>

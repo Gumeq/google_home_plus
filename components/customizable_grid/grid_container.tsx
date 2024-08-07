@@ -1,11 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Layout } from "react-grid-layout";
-import CustomizableGrid from "./customizable_grid";
-import ButtonContainer from "./button_container";
 import dynamic from "next/dynamic";
+import debounce from "lodash.debounce";
 
+// Dynamic import for child components
+const CustomizableGrid = dynamic(() => import("./customizable_grid"), {
+	ssr: false,
+});
+const ButtonContainer = dynamic(() => import("./button_container"), {
+	ssr: false,
+});
+
+// Utility function to get initial layout from localStorage
 const getInitialLayout = (): (Layout & { type: string; props?: any })[] => {
 	if (typeof window !== "undefined") {
 		const savedLayout = localStorage.getItem("grid-layout");
@@ -14,18 +22,33 @@ const getInitialLayout = (): (Layout & { type: string; props?: any })[] => {
 	return [];
 };
 
-const GridContainer = ({ access_token }: any) => {
+// Props type definition
+interface GridContainerProps {
+	access_token: string;
+}
+
+// Main component
+const GridContainer: React.FC<GridContainerProps> = ({ access_token }) => {
 	const [layout, setLayout] = useState<
 		(Layout & { type: string; props?: any })[]
 	>(getInitialLayout());
 	const [isEditable, setIsEditable] = useState(false);
 
+	// Memoized function to save layout to localStorage with debounce
+	const saveLayout = useCallback(
+		debounce((newLayout: any) => {
+			localStorage.setItem("grid-layout", JSON.stringify(newLayout));
+		}, 500),
+		[]
+	);
+
 	useEffect(() => {
 		if (typeof window !== "undefined") {
-			localStorage.setItem("grid-layout", JSON.stringify(layout));
+			saveLayout(layout);
 		}
-	}, [layout]);
+	}, [layout, saveLayout]);
 
+	// Function to add a new widget to the grid
 	const addWidget = (type: string, size: { w: number; h: number }) => {
 		const newItem: Layout & { type: string; props?: any } = {
 			i: new Date().getTime().toString(),
@@ -36,27 +59,31 @@ const GridContainer = ({ access_token }: any) => {
 			type: type,
 			props: {}, // Initialize props object
 		};
-		setLayout([...layout, newItem]);
+		setLayout((prevLayout) => [...prevLayout, newItem]);
 	};
 
+	// Function to handle layout change
 	const handleLayoutChange = (newLayout: Layout[]) => {
 		setLayout(newLayout as (Layout & { type: string; props?: any })[]);
 	};
 
+	// Function to delete a widget
 	const handleDelete = (id: string) => {
-		setLayout(layout.filter((item) => item.i !== id));
+		setLayout((prevLayout) => prevLayout.filter((item) => item.i !== id));
 	};
 
+	// Function to save link data to a widget
 	const handleSaveLink = (id: string, url: string, displayText: string) => {
-		setLayout(
-			layout.map((item) =>
+		setLayout((prevLayout) =>
+			prevLayout.map((item) =>
 				item.i === id ? { ...item, props: { url, displayText } } : item
 			)
 		);
 	};
 
+	// Function to toggle edit mode
 	const toggleEditMode = () => {
-		setIsEditable(!isEditable);
+		setIsEditable((prevIsEditable) => !prevIsEditable);
 	};
 
 	return (

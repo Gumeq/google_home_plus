@@ -1,74 +1,63 @@
 "use client";
 
 import { fetchWeather } from "@/services/weather_service";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+
+const weatherIcons = {
+	clear: { day: "clear_day.svg", night: "clear_night.svg" },
+	clouds: {
+		few: { day: "partly_cloudy_day.svg", night: "partly_cloudy_night.svg" },
+		scattered: "cloudy.svg",
+		broken: "cloudy.svg",
+	},
+	rain: {
+		shower: {
+			day: "scattered_showers_day.svg",
+			night: "scattered_showers_night.svg",
+		},
+		default: "showers_rain.svg",
+	},
+	thunderstorm: "strong_thunderstorms.svg",
+	snow: "snow.svg",
+	mist: "haze_fog_dust_smoke.svg",
+	haze: "haze_fog_dust_smoke.svg",
+	fog: "haze_fog_dust_smoke.svg",
+	smoke: "haze_fog_dust_smoke.svg",
+	dust: "haze_fog_dust_smoke.svg",
+	default: "default.svg",
+};
 
 const getIcon = (
 	weatherDescription: string,
 	theme: string,
-	time_of_day: "day" | "night"
+	timeOfDay: "day" | "night"
 ) => {
-	const isDay = time_of_day === "day";
-	switch (weatherDescription.toLowerCase()) {
-		case "clear sky":
-			return isDay
-				? `/assets/weather_icons/${theme}/clear_day.svg`
-				: `/assets/weather_icons/${theme}/clear_night.svg`;
-		case "few clouds":
-			return isDay
-				? `/assets/weather_icons/${theme}/partly_cloudy_day.svg`
-				: `/assets/weather_icons/${theme}/partly_cloudy_night.svg`;
-		case "scattered clouds":
-		case "broken clouds":
-			return `/assets/weather_icons/${theme}/cloudy.svg`;
-		case "shower rain":
-		case "light rain":
-			return isDay
-				? `/assets/weather_icons/${theme}/scattered_showers_day.svg`
-				: `/assets/weather_icons/${theme}/scattered_showers_night.svg`;
-		case "rain":
-		case "moderate rain":
-		case "heavy intensity rain":
-		case "very heavy rain":
-		case "extreme rain":
-			return `/assets/weather_icons/${theme}/showers_rain.svg`;
-		case "thunderstorm":
-		case "thunderstorm with light rain":
-		case "thunderstorm with rain":
-		case "thunderstorm with heavy rain":
-		case "light thunderstorm":
-		case "heavy thunderstorm":
-		case "ragged thunderstorm":
-		case "thunderstorm with light drizzle":
-		case "thunderstorm with drizzle":
-		case "thunderstorm with heavy drizzle":
-			return `/assets/weather_icons/${theme}/strong_thunderstorms.svg`;
-		case "snow":
-		case "light snow":
-		case "heavy snow":
-		case "sleet":
-		case "light shower sleet":
-		case "shower sleet":
-		case "light rain and snow":
-		case "rain and snow":
-		case "light shower snow":
-		case "shower snow":
-		case "heavy shower snow":
-			return `/assets/weather_icons/${theme}/snow.svg`;
-		case "mist":
-		case "smoke":
-		case "haze":
-		case "sand/dust whirls":
-		case "fog":
-		case "sand":
-		case "dust":
-		case "volcanic ash":
-		case "squalls":
-		case "tornado":
-			return `/assets/weather_icons/${theme}/haze_fog_dust_smoke.svg`;
-		default:
-			return `/assets/weather_icons/${theme}/default.svg`; // Add a default icon for unknown conditions
+	const lowerDescription = weatherDescription.toLowerCase();
+	if (lowerDescription.includes("clear")) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.clear[timeOfDay]}`;
+	} else if (lowerDescription.includes("few clouds")) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.clouds.few[timeOfDay]}`;
+	} else if (lowerDescription.includes("clouds")) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.clouds.scattered}`;
+	} else if (lowerDescription.includes("rain")) {
+		if (lowerDescription.includes("shower")) {
+			return `/assets/weather_icons/${theme}/${weatherIcons.rain.shower[timeOfDay]}`;
+		}
+		return `/assets/weather_icons/${theme}/${weatherIcons.rain.default}`;
+	} else if (lowerDescription.includes("thunderstorm")) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.thunderstorm}`;
+	} else if (lowerDescription.includes("snow")) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.snow}`;
+	} else if (
+		lowerDescription.includes("mist") ||
+		lowerDescription.includes("haze") ||
+		lowerDescription.includes("fog") ||
+		lowerDescription.includes("smoke") ||
+		lowerDescription.includes("dust")
+	) {
+		return `/assets/weather_icons/${theme}/${weatherIcons.mist}`;
 	}
+	return `/assets/weather_icons/${theme}/${weatherIcons.default}`;
 };
 
 const isDayTime = (
@@ -87,31 +76,45 @@ const WeatherWidget: React.FC = () => {
 
 	useEffect(() => {
 		const getLocationAndWeather = async () => {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(
-					async (position) => {
-						try {
-							const { latitude, longitude } = position.coords;
-							const weatherData = await fetchWeather(
-								latitude,
-								longitude
-							);
-							setWeather(weatherData);
-						} catch (error) {
-							setError("Failed to fetch weather data");
-						}
-					},
-					(error) => {
-						setError("Failed to get location");
-					}
-				);
-			} else {
+			if (!navigator.geolocation) {
 				setError("Geolocation is not supported by this browser");
+				return;
 			}
+
+			navigator.geolocation.getCurrentPosition(
+				async (position) => {
+					try {
+						const { latitude, longitude } = position.coords;
+						const weatherData = await fetchWeather(
+							latitude,
+							longitude
+						);
+						setWeather(weatherData);
+					} catch (error) {
+						setError("Failed to fetch weather data");
+					}
+				},
+				() => {
+					setError("Failed to get location");
+				}
+			);
 		};
 
 		getLocationAndWeather();
 	}, []);
+
+	const weatherDescription = weather?.weather[0].description || "";
+	const currentTime = useMemo(() => Math.floor(Date.now() / 1000), []);
+	const sunriseTime = weather?.sys.sunrise || 0;
+	const sunsetTime = weather?.sys.sunset || 0;
+	const timeOfDay = useMemo(
+		() => isDayTime(currentTime, sunriseTime, sunsetTime),
+		[currentTime, sunriseTime, sunsetTime]
+	);
+	const icon = useMemo(
+		() => getIcon(weatherDescription, "dark", timeOfDay),
+		[weatherDescription, timeOfDay]
+	);
 
 	if (error) {
 		return (
@@ -128,16 +131,6 @@ const WeatherWidget: React.FC = () => {
 			</div>
 		);
 	}
-
-	const weatherDescription = weather.weather[0].description;
-
-	// Determine if it's day or night based on the current time and sunrise/sunset times
-	const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-	const sunriseTime = weather.sys.sunrise; // Sunrise time in seconds
-	const sunsetTime = weather.sys.sunset; // Sunset time in seconds
-	const timeOfDay = isDayTime(currentTime, sunriseTime, sunsetTime);
-
-	const icon = getIcon(weatherDescription, "dark", timeOfDay);
 
 	return (
 		<div className="w-full h-full flex flex-col items-center justify-center text-foreground relative">
@@ -173,4 +166,4 @@ const WeatherWidget: React.FC = () => {
 	);
 };
 
-export default WeatherWidget;
+export default React.memo(WeatherWidget);

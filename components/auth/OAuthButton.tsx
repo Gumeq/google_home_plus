@@ -13,7 +13,7 @@ export function OAuthButton() {
 		{
 			name: "google",
 			displayName: "Google",
-			icon: "/assets/icons/google.svg",
+			icon: "/assets/icons/google_icon.svg",
 		},
 	];
 
@@ -21,7 +21,7 @@ export function OAuthButton() {
 		<>
 			{oAuthProviders.map((provider) => (
 				<button
-					className="flex items-center justify-center gap-4 outline outline-2 outline-accent outline-solid rounded-md px-4 py-2 text-foreground mb-2"
+					className="flex items-center justify-center gap-4 outline outline-1 outline-foreground/20 outline-solid rounded-md px-4 py-2 text-foreground mb-2 drop-shadow-md"
 					onClick={async () => {
 						await oAuthSignIn(provider.name);
 					}}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { markAsUntransferable } from "worker_threads";
+import React, { useEffect, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Video {
 	title: string;
@@ -11,10 +12,12 @@ interface Video {
 
 const YoutubeWidget = ({ access_token }: any) => {
 	const [videos, setVideos] = useState<Video[]>([]);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		const fetchVideos = async () => {
 			try {
+				setLoading(true);
 				const response = await fetch(
 					`/api/youtube_videos?accessToken=${access_token}&maxResults=5`
 				);
@@ -27,6 +30,8 @@ const YoutubeWidget = ({ access_token }: any) => {
 				setVideos(data.videos);
 			} catch (error) {
 				console.error("Error fetching videos:", error);
+			} finally {
+				setLoading(false);
 			}
 		};
 
@@ -35,7 +40,10 @@ const YoutubeWidget = ({ access_token }: any) => {
 
 	return (
 		<div className="w-full h-full flex flex-col overflow-y-auto">
-			<div className="w-full h-8 pb-2 mb-2 border-b border-foreground/20 flex flex-row items-center gap-2">
+			<a
+				className="w-full h-8 pb-2 mb-2 border-b border-foreground/20 flex flex-row items-center gap-2"
+				href={"https://www.youtube.com/"}
+			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					className="h-full"
@@ -59,39 +67,59 @@ const YoutubeWidget = ({ access_token }: any) => {
 						</g>
 					</svg>
 				</svg>
-				<h1 className="text-lg">Latest Video</h1>
-			</div>
-			{/* <div className="h-full">
-				<iframe
-					allowFullScreen
-					src="https://www.youtube.com/embed/k3jDxPXZuPE"
-					title="We’re all being played and I’m tired of it"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-					className="rounded-lg overflow-hidden w-full h-full"
-				></iframe>
-			</div> */}
-			<div className="w-full overflow-y-auto h-full flex flex-col gap-2 pr-2 custom-scrollbar">
-				{videos.map((video, index) => (
-					<div key={index}>
-						<iframe
-							allowFullScreen
-							src={`https://www.youtube.com/embed/${video.videoId}`}
-							title={video.title}
-							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-							className="rounded-lg overflow-hidden w-full aspect-[16/9]"
-						></iframe>
-						{/* <a
-							href={`https://www.youtube.com/watch?v=${video.videoId}`}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							{video.title}
-						</a>
-						<p>{new Date(video.publishedAt).toLocaleString()}</p> */}
-					</div>
-				))}
-			</div>
+				<h1 className="text-lg">Latest Videos</h1>
+			</a>
+			{loading ? (
+				<div className="w-full overflow-y-auto h-full flex flex-col gap-2 pr-2 custom-scrollbar">
+					{Array.from({ length: 5 }).map((_, index) => (
+						<div key={index}>
+							<Skeleton
+								height={180}
+								className="rounded-lg overflow-hidden w-full aspect-[16/9]"
+								baseColor="#4F4F4F"
+								highlightColor="#636363"
+							/>
+							<Skeleton
+								width={`80%`}
+								height={20}
+								className="mt-2"
+								baseColor="#4F4F4F"
+								highlightColor="#636363"
+							/>
+							<Skeleton
+								width={`60%`}
+								height={20}
+								baseColor="#4F4F4F"
+								highlightColor="#636363"
+							/>
+						</div>
+					))}
+				</div>
+			) : (
+				<div className="w-full overflow-y-auto h-full flex flex-col gap-2 pr-2 custom-scrollbar">
+					{videos.map((video, index) => (
+						<div key={index}>
+							<iframe
+								allowFullScreen
+								src={`https://www.youtube.com/embed/${video.videoId}`}
+								title={video.title}
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								className="rounded-lg overflow-hidden w-full aspect-[16/9]"
+							></iframe>
+							{/* <a
+								href={`https://www.youtube.com/watch?v=${video.videoId}`}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								{video.title}
+							</a>
+							<p>{new Date(video.publishedAt).toLocaleString()}</p> */}
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 };
+
 export default YoutubeWidget;
