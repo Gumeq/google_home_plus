@@ -11,6 +11,7 @@ interface Email {
 	internalDate: string;
 	subject: string;
 	from: string;
+	isUnread: boolean;
 }
 
 interface GmailWidgetProps {
@@ -65,6 +66,7 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 					}
 					const data = await response.json();
 					setEmails(data.emails);
+					console.log(emails);
 				} catch (error) {
 					console.error("Error fetching data:", error);
 				} finally {
@@ -188,15 +190,12 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 					</a>
 					<ul className="flex flex-col w-full pr-2 overflow-y-auto">
 						{emails.map((email, index) => (
-							<li
+							<a
 								key={email.id}
-								className="w-full p-2 rounded-md mb-2 flex flex-row gap-4 relative"
-								ref={index === 0 ? emailRef : null}
+								className={`w-full p-2 rounded-md mb-2 flex flex-row gap-4 relative hover:bg-foreground/10`}
+								href={`https://mail.google.com/mail/u/0/#inbox/${email.id}`}
 							>
-								<a
-									href={`https://mail.google.com/mail/u/0/#inbox/${email.id}`}
-									className="absolute top-0 right-0"
-								>
+								<div className="absolute top-0 right-0 m-2">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
 										height="16px"
@@ -206,7 +205,7 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 									>
 										<path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z" />
 									</svg>
-								</a>
+								</div>
 								<div className="min-w-8 min-h-8">
 									{email.from.includes("<") &&
 										email.from.includes(">") && (
@@ -223,14 +222,17 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 								</div>
 								<div className="h-full">
 									<p className="font-bold">
-										{extractName(email.from)}
+										{extractName(email.from)}{" "}
+										<span className="font-normal text-foreground/50">
+											{email.isUnread ? "New" : ""}
+										</span>
 									</p>
 									<p className="font-bold">{email.subject}</p>
 									<p className="line-clamp-2">
-										{email.snippet}
+										{email.snippet}{" "}
 									</p>
 								</div>
-							</li>
+							</a>
 						))}
 					</ul>
 				</div>

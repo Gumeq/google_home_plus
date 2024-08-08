@@ -14,7 +14,7 @@ const AddWidgetsButton: React.FC<DropdownButtonProps> = ({ options }) => {
 	return (
 		<div className="">
 			<button
-				className="bg-foreground/10 px-4 py-2 rounded-full shadow-lg"
+				className="bg-foreground/10 px-4 py-2 rounded-full shadow-lg hover:bg-foreground/20"
 				onClick={toggleDropdown}
 			>
 				<svg

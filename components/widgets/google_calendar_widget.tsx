@@ -255,17 +255,22 @@ const GoogleCalendarWidget: React.FC<GoogleCalendarWidgetProps> = ({
 										.map((event, index) => (
 											<li
 												key={event.id}
-												className={`w-full p-2 rounded-md mb-2`}
-												style={{
-													backgroundColor:
-														getEventColor(event),
-												}}
+												className={`w-full rounded-md mb-2 p-1 flex flex-row gap-2 items-center hover:bg-foreground/10`}
 												ref={
 													index === 0
 														? eventRef
 														: null
 												}
 											>
+												<div
+													className="w-2 h-2 rounded-full"
+													style={{
+														backgroundColor:
+															getEventColor(
+																event
+															),
+													}}
+												></div>
 												<p className="">
 													{event.summary}
 												</p>

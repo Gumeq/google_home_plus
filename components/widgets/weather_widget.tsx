@@ -138,7 +138,7 @@ const WeatherWidget: React.FC = () => {
 				<img
 					src={icon}
 					alt={weatherDescription}
-					className="h-full m-2 p-2"
+					className="h-1/2 m-2 p-2"
 				/>
 				<p className="text-4xl font-bold">
 					{Math.round(weather.main.temp)}°C

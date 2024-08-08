@@ -6,6 +6,7 @@ interface Email {
 	internalDate: string;
 	subject: string;
 	from: string;
+	isUnread: boolean;
 }
 
 const fetchLatestEmails = async (
@@ -49,6 +50,7 @@ const fetchLatestEmails = async (
 				internalDate: msg.data.internalDate || "",
 				subject: subjectHeader?.value || "No subject",
 				from: fromHeader?.value || "Unknown sender",
+				isUnread: msg.data.labelIds?.includes("UNREAD") || false,
 			};
 		});
 

@@ -12,7 +12,7 @@ const EditButton: React.FC<EditButtonProps> = ({
 	return (
 		<button
 			onClick={toggleEditMode}
-			className="bg-foreground/10 px-4 py-2 rounded-full shadow-lg flex flex-row gap-2"
+			className="bg-foreground/10 px-4 py-2 rounded-full shadow-lg flex flex-row gap-2 hover:bg-foreground/20"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
