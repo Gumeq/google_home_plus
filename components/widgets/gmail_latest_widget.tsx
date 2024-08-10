@@ -227,7 +227,9 @@ const GmailWidget: React.FC<GmailWidgetProps> = ({ access_token }) => {
 											{email.isUnread ? "New" : ""}
 										</span>
 									</p>
-									<p className="font-bold">{email.subject}</p>
+									<p className="font-bold truncate">
+										{email.subject}
+									</p>
 									<p className="line-clamp-2">
 										{email.snippet}{" "}
 									</p>

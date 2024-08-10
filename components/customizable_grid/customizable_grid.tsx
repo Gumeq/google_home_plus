@@ -122,7 +122,7 @@ const CustomizableGrid: React.FC<CustomizableGridProps> = React.memo(
 					<div
 						key={item.i}
 						data-grid={item}
-						className="relative bg-foreground/10 p-2 rounded-xl drop-shadow-lg overflow-hidden"
+						className="relative bg-foreground/5 border border-foreground/10 p-2 rounded-xl drop-shadow-lg overflow-hidden"
 					>
 						{isEditable && (
 							<button

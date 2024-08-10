@@ -10,7 +10,7 @@ export async function oAuthSignIn(provider: any) {
 	}
 
 	const supabase = createClient();
-	const redirectUrl = `https://google-home-plus.vercel.app/auth/callback`;
+	const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
 
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider,

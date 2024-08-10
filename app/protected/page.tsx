@@ -16,6 +16,7 @@ const page = async () => {
 	const supabase = createClient();
 	const { data: user } = await supabase.auth.getUser();
 	if (!user.user) {
+		console.log(user);
 		return;
 	}
 	const { data: tokens } = await supabase
