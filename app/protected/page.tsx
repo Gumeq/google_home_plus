@@ -3,6 +3,8 @@ import Link from "next/link";
 import React, { Suspense } from "react";
 import { refreshAccessToken } from "@/utils/google_api/refresh_token";
 import { createClient } from "@/utils/supabase/server";
+import Example from "@/components/search_bar/search_queries";
+import SearchQueries from "@/components/search_bar/search_queries";
 
 const GridContainer = dynamic(
 	() => import("@/components/customizable_grid/grid_container")
@@ -81,7 +83,8 @@ const page = async () => {
 						Welcome, {user.user?.user_metadata.name.split(" ")[0]}!
 					</h1>
 					<Suspense fallback={<div>Loading...</div>}>
-						<SearchBar />
+						<SearchQueries user_id={user.user.id}></SearchQueries>
+						{/* <SearchBar></SearchBar> */}
 					</Suspense>
 				</div>
 				<Suspense fallback={<div>Loading...</div>}>
